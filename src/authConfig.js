@@ -74,6 +74,11 @@ export const vmConfig = {
     vmEndpoint1: "https://management.azure.com",
     vmEndpoint2: "/providers/Microsoft.Compute/virtualMachines?api-version=2021-03-01"
 };
+export const mtConfig = {
+    mtEndpoint: "https://management.azure.com/{resourceUri}/providers/Microsoft.Insights/metrics?api-version=2018-01-01",
+    mtEndpoint1: "https://management.azure.com",
+    mtEndpoint2: "/providers/Microsoft.Insights/metrics?api-version=2018-01-01"
+};
 
 
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
-import { loginRequest, dataRequest, rgConfig, vmConfig } from "./authConfig";
+import { loginRequest, dataRequest, rgConfig, vmConfig, mtConfig } from "./authConfig";
 import { PageLayout } from "./components/PageLayout";
 import { callMsGraph, callSubs, callRG, callVM } from "./graph";
 import Button from "react-bootstrap/Button";
@@ -86,6 +86,7 @@ const SubsContent = () => {
                     const selectedSubsId = e.target.value;
                     setSubscriptionIdState(selectedSubsId);
                 } }>
+                <option value="" disabled>Select Option</option>
                     {tableRows}
                 </select>
             </span>
@@ -138,7 +139,9 @@ const RGContent = (props) => {
                     console.log("e", e);
                     setrgNameState(selectedRgName);
                 } }>
+                <option value="" disabled>Select Option</option>
                     {tableRowss}
+                
                 </select>
             </span>
             {rgNameState ? <VMContent name={rgNameState} /> : null}
@@ -161,9 +164,10 @@ const RGContent = (props) => {
 const VMContent = (props) => {
     const { instance, accounts } = useMsal();
     const [vmData, setVMData] = useState(null);
+    let [vmState, setvmState] = useState("");
 
     function RequestVMData() {
-        // Silently acquires an access token which is then attached to a request for MS Graph data
+        
         instance.acquireTokenSilent({
             ...dataRequest,
             account: accounts[0]
@@ -173,20 +177,29 @@ const VMContent = (props) => {
     }
 
     const VMData = (props) => {
-        let tableRows = Object.entries(props.vmData.value).map((entry, index) => {
-            index = entry[1].name;
+        let tableRowsss = Object.entries(props.vmData.value).map((entry, index) => {
+            index = entry[1].id;
             return (<option key={index} value={index}>
                 {entry[1].name}
             </option>)
         });
-        console.log(props);
+        console.log("ccc", tableRowsss);
     
         return (
-            <span id="virtualmachine-div">
-                <select>
-                    {tableRows}
+            <>
+            <span id="virtualMachine-div">
+                <select value={vmState} onChange={(e) => {
+                    const selectedvmName = e.target.value;
+                    console.log("e", e);
+                    setvmState(selectedvmName);
+                } }>
+                <option value="" disabled>Select Option</option>
+                    {tableRowsss}
+                
                 </select>
             </span>
+            {vmState ? <MTContent name={vmState} /> : null}
+            </>
         );
     };
 
@@ -196,6 +209,48 @@ const VMContent = (props) => {
                 <VMData vmData={vmData} />
                 :
                 RequestVMData()
+            }
+        </>
+    );
+};
+
+// 가상머신 메트릭 데이터 불러오기
+const MTContent = (props) => {
+    const { instance, accounts } = useMsal();
+    const [mtData, setMTData] = useState(null);
+
+    function RequestMTData() {
+        // Silently acquires an access token which is then attached to a request for MS Graph data
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpoint2).then(response => setMTData(response));
+        });
+    }
+
+    const MTData = (props) => {
+        // let tableRows = Object.entries(props.mtData.value).map((entry, index) => {
+        //     index = entry[1].name;
+        //     return (<option key={index} value={index}>
+        //         {entry[1].name}
+        //     </option>)
+        // });
+        console.log(props);
+    
+        return (
+            <>
+                
+            </>
+        );
+    };
+
+    return (
+        <>
+            {mtData ? 
+                <MTData mtData={mtData} />
+                :
+                RequestMTData()
             }
         </>
     );
