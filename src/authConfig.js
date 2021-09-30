@@ -77,7 +77,14 @@ export const vmConfig = {
 export const mtConfig = {
     mtEndpoint: "https://management.azure.com/{resourceUri}/providers/Microsoft.Insights/metrics?api-version=2018-01-01",
     mtEndpoint1: "https://management.azure.com",
-    mtEndpoint2: "/providers/Microsoft.Insights/metrics?api-version=2018-01-01"
+    mtEndpointCPU: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Percentage CPU&timespan=2021-09-30T07:08/2021-09-30T08:08",
+    mtEndpointNetworkIn: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network In Total",
+    mtEndpointNetworkOut: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network Out Total",
+    mtEndpointDiskRead: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Bytes",
+    mtEndpointDiskWrite: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Bytes",
+    mtEndpointDiskReadOp: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Operations/Sec",
+    mtEndpointDiskWriteOp: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Operations/Sec",
+    mtEndpointMemory: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Available Memory Bytes"
 };
 
 

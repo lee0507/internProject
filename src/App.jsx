@@ -1,9 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
 import { loginRequest, dataRequest, rgConfig, vmConfig, mtConfig } from "./authConfig";
 import { PageLayout } from "./components/PageLayout";
 import { callMsGraph, callSubs, callRG, callVM } from "./graph";
-import Button from "react-bootstrap/Button";
+import Button from 'devextreme-react/button';
+import {
+    Chart,
+    Series,
+    ArgumentAxis,
+    CommonSeriesSettings,
+    CommonAxisSettings,
+    Grid,
+    Export,
+    Legend,
+    Margin,
+    Tooltip,
+    Label,
+    Format,
+    ChartTitle
+  } from "devextreme-react/chart";
+
 import "./styles/App.css";
 
 /**
@@ -14,7 +30,7 @@ import "./styles/App.css";
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
     const [graphData, setGraphData] = useState(null);
-
+    
     function RequestProfileData() {
         // Silently acquires an access token which is then attached to a request for MS Graph data
         instance.acquireTokenSilent({
@@ -77,7 +93,6 @@ const SubsContent = () => {
                 {entry[1].displayName}
             </option>)
         });
-        console.log("aaa", subscriptionIdState);
     
         return (
             <>
@@ -136,7 +151,6 @@ const RGContent = (props) => {
             <span id="resourcegroup-div">
                 <select value={rgNameState} onChange={(e) => {
                     const selectedRgName = e.target.value;
-                    console.log("e", e);
                     setrgNameState(selectedRgName);
                 } }>
                 <option value="" disabled>Select Option</option>
@@ -190,7 +204,6 @@ const VMContent = (props) => {
             <span id="virtualMachine-div">
                 <select value={vmState} onChange={(e) => {
                     const selectedvmName = e.target.value;
-                    console.log("e", e);
                     setvmState(selectedvmName);
                 } }>
                 <option value="" disabled>Select Option</option>
@@ -218,6 +231,7 @@ const VMContent = (props) => {
 const MTContent = (props) => {
     const { instance, accounts } = useMsal();
     const [mtData, setMTData] = useState(null);
+    
 
     function RequestMTData() {
         // Silently acquires an access token which is then attached to a request for MS Graph data
@@ -225,36 +239,78 @@ const MTContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpoint2).then(response => setMTData(response));
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setMTData(response));
         });
     }
 
     const MTData = (props) => {
-        // let tableRows = Object.entries(props.mtData.value).map((entry, index) => {
-        //     index = entry[1].name;
-        //     return (<option key={index} value={index}>
-        //         {entry[1].name}
-        //     </option>)
-        // });
-        console.log(props);
-    
+        const architectureSources = [
+            { value: 'average', name: 'Average' },
+          ];
+        const cpuData = props.mtData.value[0].timeseries[0].data;
+        const cpuDatasplice = props.mtData.value[0].timeseries[0].data;
+
+        console.log("cpuData1", cpuData);
+        console.log("cpuDatasplice", cpuDatasplice[0].timeStamp.slice(11, -4));
+        
+        const result = cpuDatasplice.map(function (item) {
+            console.log("item", item.timeStamp.slice(11, -4));
+            return (
+                {"timeStamp" : item.timeStamp.slice(11, -4), "average" : item.average}
+            );
+        })
+        console.log("aaaa", result);
+
+        
+
         return (
-            <>
-                
-            </>
+        <React.Fragment>
+            <hr />
+            <Chart
+                palette="Violet"
+                dataSource={result}
+            >
+            <ChartTitle text="⚙ CPU (Avarage)" />
+            <CommonSeriesSettings argumentField="timeStamp" type="spline" />
+            <CommonAxisSettings>
+                <Grid visible={true} />
+            </CommonAxisSettings>
+            {architectureSources.map(function (item) {
+                return (
+                <Series
+                    key={item.value}
+                    valueField={item.value}
+                    name={item.name}
+                />
+                );
+            })}
+            <Margin bottom={20} />
+            <ArgumentAxis allowDecimals={false} axisDivisionFactor={60}>
+                <Label>
+                <Format type="decimal" />
+                </Label>
+            </ArgumentAxis>
+            <Legend verticalAlignment="top" horizontalAlignment="right" />
+            <Export enabled={true} fileName="lee" />
+            <Tooltip enabled={true} />
+            </Chart>
+        </React.Fragment>
         );
+
     };
 
+    useEffect(() => {
+        return () => setMTData(false);
+      }, []);
+    
     return (
         <>
-            {mtData ? 
-                <MTData mtData={mtData} />
-                :
-                RequestMTData()
-            }
+            {mtData ? <MTData mtData={mtData} />:RequestMTData()}
         </>
     );
+
 };
+
 
 /**
  * If a user is authenticated the ProfileContent component above is rendered. Otherwise a message indicating a user is not authenticated is rendered.
