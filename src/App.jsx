@@ -230,38 +230,33 @@ const VMContent = (props) => {
 // 가상머신 메트릭 데이터 불러오기
 const MTContent = (props) => {
     const { instance, accounts } = useMsal();
-    const [mtData, setMTData] = useState(null);
+    const [cpuData, setCPUData] = useState(null);
+    const [netInData, setnetInData] = useState(null);
+    const [netOutData, setnetOutData] = useState(null);
     
-
-    function RequestMTData() {
-        // Silently acquires an access token which is then attached to a request for MS Graph data
+    //CPU 데이터 요청
+    function RequestCPUData() {
         instance.acquireTokenSilent({
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setMTData(response));
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setCPUData(response));
         });
     }
 
-    const MTData = (props) => {
+    //CPU 데이터 가공 및 출력
+    const CPUData = (props) => {
         const architectureSources = [
             { value: 'average', name: 'Average' },
           ];
-        const cpuData = props.mtData.value[0].timeseries[0].data;
-        const cpuDatasplice = props.mtData.value[0].timeseries[0].data;
+        const cpuDataAll = props.cpuData.value[0].timeseries[0].data;
 
-        console.log("cpuData1", cpuData);
-        console.log("cpuDatasplice", cpuDatasplice[0].timeStamp.slice(11, -4));
-        
-        const result = cpuDatasplice.map(function (item) {
-            console.log("item", item.timeStamp.slice(11, -4));
+        const result = cpuDataAll.map(function (item) {
             return (
                 {"timeStamp" : item.timeStamp.slice(11, -4), "average" : item.average}
             );
         })
         console.log("aaaa", result);
-
-        
 
         return (
         <React.Fragment>
@@ -296,19 +291,90 @@ const MTContent = (props) => {
             </Chart>
         </React.Fragment>
         );
-
     };
 
+    //네트워크 IN 데이터 요청
+    function RequestNetInData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkIn).then(response => setnetInData(response));
+        });
+    }
+    //네트워크 OUT 데이터 요청
+    function RequestNetOutData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut).then(response => setnetOutData(response));
+        });
+    }
+
+    //네트워크 데이터 가공 및 출력
+    const NetworkData = (props) => {
+        const architectureSources = [
+            { value: 'total', name: 'total' },
+          ];
+        const networkInDataAll = props.netInData;
+        const networkOutDataAll = props.netoutData;
+        console.log("networkInDataAll", networkInDataAll);
+        console.log("networkOutDataAll", networkOutDataAll);
+        console.log("props", props);
+
+        // const result = cpuDataAll.map(function (item) {
+        //     return (
+        //         {"timeStamp" : item.timeStamp.slice(11, -4), "average" : item.average}
+        //     );
+        // })
+
+        return (
+        <React.Fragment>
+            {/* <hr />
+            <Chart
+                palette="Violet"
+                dataSource={networkDataAll}
+            >
+            <ChartTitle text="⚙ Network (Avarage)" />
+            <CommonSeriesSettings argumentField="timeStamp" type="spline" />
+            <CommonAxisSettings>
+                <Grid visible={true} />
+            </CommonAxisSettings>
+            {architectureSources.map(function (item) {
+                return (
+                <Series
+                    key={item.value}
+                    valueField={item.value}
+                    name={item.name}
+                />
+                );
+            })}
+            <Margin bottom={20} />
+            <ArgumentAxis allowDecimals={false} axisDivisionFactor={60}>
+                <Label>
+                <Format type="decimal" />
+                </Label>
+            </ArgumentAxis>
+            <Legend verticalAlignment="top" horizontalAlignment="right" />
+            <Export enabled={true} fileName="lee" />
+            <Tooltip enabled={true} />
+            </Chart> */}
+        </React.Fragment>
+        );
+    };
+    
+
     useEffect(() => {
-        return () => setMTData(false);
+        return () => setCPUData(false);
       }, []);
     
     return (
         <>
-            {mtData ? <MTData mtData={mtData} />:RequestMTData()}
+            {cpuData ? <CPUData cpuData={cpuData} />:RequestCPUData()}
+            {netInData ? <NetworkData netInData={netInData} />:RequestNetInData()}
         </>
     );
-
 };
 
 
