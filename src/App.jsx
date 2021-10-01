@@ -70,6 +70,7 @@ const ProfileContent = () => {
         </>
     );
 };
+
 //구독 데이터 불러오기
 const SubsContent = () => {
 
@@ -105,7 +106,7 @@ const SubsContent = () => {
                     {tableRows}
                 </select>
             </span>
-            {subscriptionIdState ? <RGContent name={subscriptionIdState} /> : null}
+            {subscriptionIdState && <RGContent name={subscriptionIdState} />}
             </>
         );
     };
@@ -158,7 +159,7 @@ const RGContent = (props) => {
                 
                 </select>
             </span>
-            {rgNameState ? <VMContent name={rgNameState} /> : null}
+            {rgNameState && <VMContent name={rgNameState} />}
             </>
         );
     };
@@ -211,7 +212,11 @@ const VMContent = (props) => {
                 
                 </select>
             </span>
-            {vmState ? <MTContent name={vmState} /> : null}
+            {vmState && <CPUContent name={vmState} />}
+            {vmState && <NetworkContent name={vmState} />}
+            {vmState && <DiskContent name={vmState} />}
+            {vmState && <DiskOperationContent name={vmState} />}
+            {vmState && <MemoryContent name={vmState} />}
             </>
         );
     };
@@ -227,12 +232,10 @@ const VMContent = (props) => {
     );
 };
 
-// 가상머신 메트릭 데이터 불러오기
-const MTContent = (props) => {
+// 가상머신 CPU 데이터 불러오기
+const CPUContent = (props) => {
     const { instance, accounts } = useMsal();
     const [cpuData, setCPUData] = useState(null);
-    const [netInData, setnetInData] = useState(null);
-    const [netOutData, setnetOutData] = useState(null);
     
     //CPU 데이터 요청
     function RequestCPUData() {
@@ -243,7 +246,7 @@ const MTContent = (props) => {
             callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setCPUData(response));
         });
     }
-
+    
     //CPU 데이터 가공 및 출력
     const CPUData = (props) => {
         const architectureSources = [
@@ -252,9 +255,10 @@ const MTContent = (props) => {
         const cpuDataAll = props.cpuData.value[0].timeseries[0].data;
 
         const result = cpuDataAll.map(function (item) {
-            return (
-                {"timeStamp" : item.timeStamp.slice(11, -4), "average" : item.average}
-            );
+            return {
+                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "average" : item.average
+            };       
         })
         console.log("aaaa", result);
 
@@ -293,6 +297,23 @@ const MTContent = (props) => {
         );
     };
 
+    useEffect(() => {
+        return () => setCPUData(false);
+      }, []);
+    
+    return (
+        <>
+            {cpuData ? <CPUData cpuData={cpuData} />:RequestCPUData()}
+        </>
+    );
+};
+
+// 가상머신 네트워크 데이터 불러오기
+const NetworkContent = (props) => {
+    const { instance, accounts } = useMsal();
+    const [netInData, setnetInData] = useState(null);
+    const [netOutData, setnetOutData] = useState(null);
+
     //네트워크 IN 데이터 요청
     function RequestNetInData() {
         instance.acquireTokenSilent({
@@ -311,32 +332,33 @@ const MTContent = (props) => {
             callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut).then(response => setnetOutData(response));
         });
     }
-
+    
     //네트워크 데이터 가공 및 출력
     const NetworkData = (props) => {
         const architectureSources = [
-            { value: 'total', name: 'total' },
+            { value: 'networkIn', name: 'NetworkIn' },
+            { value: 'networkOut', name: 'NetworkOut' }
           ];
-        const networkInDataAll = props.netInData;
-        const networkOutDataAll = props.netoutData;
-        console.log("networkInDataAll", networkInDataAll);
-        console.log("networkOutDataAll", networkOutDataAll);
-        console.log("props", props);
+        const networkInDataAll = props.netInData.value[0].timeseries[0].data;
+        const networkOutDataAll = props.netOutData.value[0].timeseries[0].data;
 
-        // const result = cpuDataAll.map(function (item) {
-        //     return (
-        //         {"timeStamp" : item.timeStamp.slice(11, -4), "average" : item.average}
-        //     );
-        // })
+        const result = networkInDataAll.map((item, index) =>{
+
+            return {
+                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "networkIn" : item.total,
+                "networkOut" : networkOutDataAll[index].total
+            };
+        })
 
         return (
         <React.Fragment>
-            {/* <hr />
+            <hr />
             <Chart
                 palette="Violet"
-                dataSource={networkDataAll}
+                dataSource={result}
             >
-            <ChartTitle text="⚙ Network (Avarage)" />
+            <ChartTitle text="⚙ Network (Total)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
                 <Grid visible={true} />
@@ -359,29 +381,302 @@ const MTContent = (props) => {
             <Legend verticalAlignment="top" horizontalAlignment="right" />
             <Export enabled={true} fileName="lee" />
             <Tooltip enabled={true} />
-            </Chart> */}
+            </Chart>
         </React.Fragment>
         );
     };
-    
 
     useEffect(() => {
-        return () => setCPUData(false);
+        return () => setnetInData(false);
+      }, []);
+
+    useEffect(() => {
+        return () => setnetOutData(false);
+      }, []);
+
+    return (
+        <>
+            {netInData ? 
+                netOutData ? 
+                    <NetworkData netInData={netInData} netOutData={netOutData}/>
+                    :RequestNetOutData() 
+                :RequestNetInData()}
+        </>
+    );
+};
+
+// 가상머신 디스크 데이터 불러오기
+const DiskContent = (props) => {
+    const { instance, accounts } = useMsal();
+    const [diskReadData, setDiskReadData] = useState(null);
+    const [diskWriteData, setDiskWriteData] = useState(null);
+
+    //디스크 Read 데이터 요청
+    function RequestDiskReadData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskRead).then(response => setDiskReadData(response));
+        });
+    }
+    //디스크 Write 데이터 요청
+    function RequestDiskWriteData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWrite).then(response => setDiskWriteData(response));
+        });
+    }
+    
+    //디스크 데이터 가공 및 출력
+    const DiskData = (props) => {
+        const architectureSources = [
+            { value: 'diskRead', name: 'DiskRead' },
+            { value: 'diskWrite', name: 'DiskWrite' }
+          ];
+        const diskReadDataAll = props.diskReadData.value[0].timeseries[0].data;
+        const diskWriteDataAll = props.diskWriteData.value[0].timeseries[0].data;
+
+        const result = diskReadDataAll.map((item, index) =>{
+
+            return {
+                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "diskRead" : item.total,
+                "diskWrite" : diskWriteDataAll[index].total
+            };
+        })
+
+        return (
+        <React.Fragment>
+            <hr />
+            <Chart
+                palette="Violet"
+                dataSource={result}
+            >
+            <ChartTitle text="⚙ Disk (Total)" />
+            <CommonSeriesSettings argumentField="timeStamp" type="spline" />
+            <CommonAxisSettings>
+                <Grid visible={true} />
+            </CommonAxisSettings>
+            {architectureSources.map(function (item) {
+                return (
+                <Series
+                    key={item.value}
+                    valueField={item.value}
+                    name={item.name}
+                />
+                );
+            })}
+            <Margin bottom={20} />
+            <ArgumentAxis allowDecimals={false} axisDivisionFactor={60}>
+                <Label>
+                <Format type="decimal" />
+                </Label>
+            </ArgumentAxis>
+            <Legend verticalAlignment="top" horizontalAlignment="right" />
+            <Export enabled={true} fileName="lee" />
+            <Tooltip enabled={true} />
+            </Chart>
+        </React.Fragment>
+        );
+    };
+
+    useEffect(() => {
+        return () => setDiskReadData(false);
+      }, []);
+
+    useEffect(() => {
+        return () => setDiskWriteData(false);
+      }, []);
+
+    return (
+        <>
+            {diskReadData ? 
+                diskWriteData ? 
+                    <DiskData diskReadData={diskReadData} diskWriteData={diskWriteData}/>
+                    :RequestDiskWriteData() 
+                :RequestDiskReadData()}
+        </>
+    );
+};
+
+// 가상머신 디스크 작업 데이터 불러오기
+const DiskOperationContent = (props) => {
+    const { instance, accounts } = useMsal();
+    const [diskReadOperationData, setDiskReadOperationData] = useState(null);
+    const [diskWriteOperationData, setDiskWriteOperationData] = useState(null);
+
+    //디스크 작업 Read 데이터 요청
+    function RequestDiskReadOperationData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskReadOperation).then(response => setDiskReadOperationData(response));
+        });
+    }
+    //디스크 작업 Write 데이터 요청
+    function RequestDiskWriteOperationData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWriteOperation).then(response => setDiskWriteOperationData(response));
+        });
+    }
+    
+    //디스크 작업 데이터 가공 및 출력
+    const DiskOperationData = (props) => {
+        const architectureSources = [
+            { value: 'diskReadOperation', name: 'DiskReadOperation' },
+            { value: 'diskWriteOperation', name: 'DiskWriteOperation' }
+          ];
+        const diskReadOperationDataAll = props.diskReadOperationData.value[0].timeseries[0].data;
+        const diskWriteOperationDataAll = props.diskWriteOperationData.value[0].timeseries[0].data;
+
+        const result = diskReadOperationDataAll.map((item, index) =>{
+
+            return {
+                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "diskReadOperation" : item.average,
+                "diskWriteOperation" : diskWriteOperationDataAll[index].average
+            };
+        })
+
+        return (
+        <React.Fragment>
+            <hr />
+            <Chart
+                palette="Violet"
+                dataSource={result}
+            >
+            <ChartTitle text="⚙ Disk Operation (Average)" />
+            <CommonSeriesSettings argumentField="timeStamp" type="spline" />
+            <CommonAxisSettings>
+                <Grid visible={true} />
+            </CommonAxisSettings>
+            {architectureSources.map(function (item) {
+                return (
+                <Series
+                    key={item.value}
+                    valueField={item.value}
+                    name={item.name}
+                />
+                );
+            })}
+            <Margin bottom={20} />
+            <ArgumentAxis allowDecimals={false} axisDivisionFactor={60}>
+                <Label>
+                <Format type="decimal" />
+                </Label>
+            </ArgumentAxis>
+            <Legend verticalAlignment="top" horizontalAlignment="right" />
+            <Export enabled={true} fileName="lee" />
+            <Tooltip enabled={true} />
+            </Chart>
+        </React.Fragment>
+        );
+    };
+
+    useEffect(() => {
+        return () => setDiskReadOperationData(false);
+      }, []);
+
+    useEffect(() => {
+        return () => setDiskWriteOperationData(false);
+      }, []);
+
+    return (
+        <>
+            {diskReadOperationData ? 
+                diskWriteOperationData ? 
+                    <DiskOperationData diskReadOperationData={diskReadOperationData} diskWriteOperationData={diskWriteOperationData}/>
+                    :RequestDiskWriteOperationData() 
+                :RequestDiskReadOperationData()}
+        </>
+    );
+};
+
+// 가상머신 메모리 데이터 불러오기
+const MemoryContent = (props) => {
+    const { instance, accounts } = useMsal();
+    const [memoryData, setMemoryData] = useState(null);
+    
+    //메모리 데이터 요청
+    function RequestMemoryData() {
+        instance.acquireTokenSilent({
+            ...dataRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointMemory).then(response => setMemoryData(response));
+        });
+    }
+    
+    //메모리 데이터 가공 및 출력
+    const MemoryData = (props) => {
+        const architectureSources = [
+            { value: 'average', name: 'Average' },
+          ];
+        const memoryDataAll = props.memoryData.value[0].timeseries[0].data;
+        console.log("memoryDataAll", memoryDataAll)
+        const result = memoryDataAll.map(function (item) {
+            return {
+                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "average" : (item.average / 1000000000).toFixed(2)
+            };       
+        })
+        console.log("aaaa", result);
+
+        return (
+        <React.Fragment>
+            <hr />
+            <Chart
+                palette="Violet"
+                dataSource={result}
+            >
+            <ChartTitle text="⚙ Memory (Avarage)" />
+            <CommonSeriesSettings argumentField="timeStamp" type="spline" />
+            <CommonAxisSettings>
+                <Grid visible={true} />
+            </CommonAxisSettings>
+            {architectureSources.map(function (item) {
+                return (
+                <Series
+                    key={item.value}
+                    valueField={item.value}
+                    name={item.name}
+                />
+                );
+            })}
+            <Margin bottom={20} />
+            <ArgumentAxis allowDecimals={false} axisDivisionFactor={60}>
+                <Label>
+                <Format type="decimal" />
+                </Label>
+            </ArgumentAxis>
+            <Legend verticalAlignment="top" horizontalAlignment="right" />
+            <Export enabled={true} fileName="lee" />
+            <Tooltip enabled={true} />
+            </Chart>
+        </React.Fragment>
+        );
+    };
+
+    useEffect(() => {
+        return () => setMemoryData(false);
       }, []);
     
     return (
         <>
-            {cpuData ? <CPUData cpuData={cpuData} />:RequestCPUData()}
-            {netInData ? <NetworkData netInData={netInData} />:RequestNetInData()}
+            {memoryData ? <MemoryData memoryData={memoryData} />:RequestMemoryData()}
         </>
     );
 };
 
 
-/**
- * If a user is authenticated the ProfileContent component above is rendered. Otherwise a message indicating a user is not authenticated is rendered.
- */
-const MainContent = () => {    
+const MainContent = () => {
     return (
         <div className="App">
             <AuthenticatedTemplate>

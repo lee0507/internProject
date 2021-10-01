@@ -17,7 +17,7 @@ export const msalConfig = {
         redirectUri: "http://localhost:3000/"
     },
     cache: {
-        cacheLocation: "sessionStorage", // This configures where your cache will be stored
+        cacheLocation: "localStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {	
@@ -80,11 +80,11 @@ export const mtConfig = {
     mtEndpointCPU: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Percentage CPU&timespan=2021-09-30T07:08/2021-09-30T08:08",
     mtEndpointNetworkIn: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network In Total&timespan=2021-09-30T07:08/2021-09-30T08:08",
     mtEndpointNetworkOut: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network Out Total&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointDiskRead: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Bytes",
-    mtEndpointDiskWrite: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Bytes",
-    mtEndpointDiskReadOp: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Operations/Sec",
-    mtEndpointDiskWriteOp: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Operations/Sec",
-    mtEndpointMemory: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Available Memory Bytes"
+    mtEndpointDiskRead: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08",
+    mtEndpointDiskWrite: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08",
+    mtEndpointDiskReadOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Operations/Sec&timespan=2021-09-30T07:08/2021-09-30T08:08",
+    mtEndpointDiskWriteOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Operations/Sec&timespan=2021-09-30T07:08/2021-09-30T08:08",
+    mtEndpointMemory: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Available Memory Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08"
 };
 
 
