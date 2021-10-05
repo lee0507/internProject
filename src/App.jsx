@@ -256,11 +256,10 @@ const CPUContent = (props) => {
 
         const result = cpuDataAll.map(function (item) {
             return {
-                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
                 "average" : item.average
             };       
         })
-        console.log("aaaa", result);
 
         return (
         <React.Fragment>
@@ -346,8 +345,8 @@ const NetworkContent = (props) => {
 
             return {
                 "timeStamp" : item.timeStamp.slice(11, -4), 
-                "networkIn" : item.total,
-                "networkOut" : networkOutDataAll[index].total
+                "networkIn" : Number((item.total / 1000).toFixed(2)),
+                "networkOut" : Number((networkOutDataAll[index].total / 1000).toFixed(2))
             };
         })
 
@@ -442,9 +441,9 @@ const DiskContent = (props) => {
         const result = diskReadDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : item.timeStamp.slice(11, -4), 
-                "diskRead" : item.total,
-                "diskWrite" : diskWriteDataAll[index].total
+                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "diskRead" : Number((item.total / 1000000).toFixed(2)),
+                "diskWrite" : Number((diskWriteDataAll[index].total / 1000000).toFixed(2))
             };
         })
 
@@ -539,9 +538,9 @@ const DiskOperationContent = (props) => {
         const result = diskReadOperationDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : item.timeStamp.slice(11, -4), 
-                "diskReadOperation" : item.average,
-                "diskWriteOperation" : diskWriteOperationDataAll[index].average
+                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "diskReadOperation" : Number(Number(item.average).toFixed(2)),
+                "diskWriteOperation" : Number(Number(diskWriteOperationDataAll[index].average).toFixed(2))
             };
         })
 
@@ -620,11 +619,14 @@ const MemoryContent = (props) => {
             { value: 'average', name: 'Average' },
           ];
         const memoryDataAll = props.memoryData.value[0].timeseries[0].data;
-        console.log("memoryDataAll", memoryDataAll)
+
         const result = memoryDataAll.map(function (item) {
+            if(item.average == 'NaN' || item.average == null) {
+                item.average = 0;
+            }
             return {
-                "timeStamp" : item.timeStamp.slice(11, -4), 
-                "average" : (item.average / 1000000000).toFixed(2)
+                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "average" : Number((item.average / 1000000000).toFixed(2))
             };       
         })
         console.log("aaaa", result);

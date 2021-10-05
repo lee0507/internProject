@@ -74,17 +74,18 @@ export const vmConfig = {
     vmEndpoint1: "https://management.azure.com",
     vmEndpoint2: "/providers/Microsoft.Compute/virtualMachines?api-version=2021-03-01"
 };
+//&timespan=2021-09-30T07:08/2021-09-30T08:08
 export const mtConfig = {
     mtEndpoint: "https://management.azure.com/{resourceUri}/providers/Microsoft.Insights/metrics?api-version=2018-01-01",
     mtEndpoint1: "https://management.azure.com",
-    mtEndpointCPU: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Percentage CPU&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointNetworkIn: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network In Total&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointNetworkOut: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network Out Total&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointDiskRead: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointDiskWrite: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointDiskReadOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Operations/Sec&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointDiskWriteOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Operations/Sec&timespan=2021-09-30T07:08/2021-09-30T08:08",
-    mtEndpointMemory: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Available Memory Bytes&timespan=2021-09-30T07:08/2021-09-30T08:08"
+    mtEndpointCPU: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Percentage CPU",
+    mtEndpointNetworkIn: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network In Total",
+    mtEndpointNetworkOut: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Network Out Total",
+    mtEndpointDiskRead: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Bytes",
+    mtEndpointDiskWrite: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Bytes",
+    mtEndpointDiskReadOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Read Operations/Sec",
+    mtEndpointDiskWriteOperation: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Disk Write Operations/Sec",
+    mtEndpointMemory: "/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames=Available Memory Bytes"
 };
 
 
