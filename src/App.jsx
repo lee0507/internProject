@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
 import { loginRequest, dataRequest, rgConfig, vmConfig, mtConfig } from "./authConfig";
 import { PageLayout } from "./components/PageLayout";
-import { callMsGraph, callSubs, callRG, callVM } from "./graph";
-import Button from 'devextreme-react/button';
+import { callMsGraph, callSubs, callMT } from "./graph";
 import {
     Chart,
     Series,
@@ -17,22 +16,19 @@ import {
     Tooltip,
     Label,
     Format,
-    ChartTitle
+    ChartTitle,
+    ValueAxis
   } from "devextreme-react/chart";
 
 import "./styles/App.css";
 
-/**
- * Renders information about the signed-in user or a button to retrieve data about the user
- */
 
 //프로필 데이터 불러오기
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
     const [graphData, setGraphData] = useState(null);
-    
+
     function RequestProfileData() {
-        // Silently acquires an access token which is then attached to a request for MS Graph data
         instance.acquireTokenSilent({
             ...loginRequest,
             account: accounts[0]
@@ -46,15 +42,31 @@ const ProfileContent = () => {
         let 직급 = props.graphData.jobTitle
         let 메일 = props.graphData.mail
         let 핸드폰 = props.graphData.mobilePhone
-        console.log(props)
+
+        function handle() {
+            const set = new Set();
+
+            while(true) {
+                let num = parseInt(Math.random() * 45) + 1;
+                set.add(num);
+                if (set.size== 6) {
+                    break;
+                }
+            }
+            const arr = [...set]
+            arr.sort((a, b) => a - b);
+            alert("로또번호는 " + arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4] + " " + arr[5]);
+        }
     
         return (
             <>
             <div className="data-area-div">
-            <h1>Welcome {이름} {직급}</h1>
-                <div>📍 User Information</div>
-                <div>Email : {메일}</div>
-                <div>mobilePhone : {핸드폰}</div>
+            <h1>🎉Welcome {이름} {직급}</h1><p />
+                <div id="welcome">
+                    <span id="icon" onClick={handle}>📍 </span><span id="userInfo" >User Information</span>
+                    <div>Email : {메일}</div>
+                    <div>mobilePhone : {핸드폰}</div>
+                </div>
             </div>
             </>
         );
@@ -62,6 +74,7 @@ const ProfileContent = () => {
 
     return (
         <>
+        
             {graphData ?
                 <ProfileData graphData={graphData} />
                 :
@@ -97,7 +110,7 @@ const SubsContent = () => {
     
         return (
             <>
-            <span id="subscription-div">
+            <span id="subscription-span">
                 <select value={subscriptionIdState} onChange={(e) => {
                     const selectedSubsId = e.target.value;
                     setSubscriptionIdState(selectedSubsId);
@@ -129,12 +142,11 @@ const RGContent = (props) => {
     let [rgNameState, setrgNameState] = useState("");
 
     function RequestRGData() {
-
         instance.acquireTokenSilent({
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callRG(response.accessToken, rgConfig.rgEndpoint1 + props.name + rgConfig.rgEndpoint2).then(response => setRGData(response));
+            callMT(response.accessToken, rgConfig.rgEndpoint1 + props.name + rgConfig.rgEndpoint2).then(response => setRGData(response));
         });
     }
     
@@ -145,11 +157,10 @@ const RGContent = (props) => {
                 {entry[1].name}
             </option>)
         });
-        console.log("bbb", tableRowss);
     
         return (
             <>
-            <span id="resourcegroup-div">
+            <span id="resourcegroup-span">
                 <select value={rgNameState} onChange={(e) => {
                     const selectedRgName = e.target.value;
                     setrgNameState(selectedRgName);
@@ -182,12 +193,11 @@ const VMContent = (props) => {
     let [vmState, setvmState] = useState("");
 
     function RequestVMData() {
-        
         instance.acquireTokenSilent({
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, vmConfig.vmEndpoint1 + props.name + vmConfig.vmEndpoint2).then(response => setVMData(response));
+            callMT(response.accessToken, vmConfig.vmEndpoint1 + props.name + vmConfig.vmEndpoint2).then(response => setVMData(response));
         });
     }
 
@@ -198,11 +208,10 @@ const VMContent = (props) => {
                 {entry[1].name}
             </option>)
         });
-        console.log("ccc", tableRowsss);
     
         return (
             <>
-            <span id="virtualMachine-div">
+            <span id="virtualMachine-span">
                 <select value={vmState} onChange={(e) => {
                     const selectedvmName = e.target.value;
                     setvmState(selectedvmName);
@@ -212,11 +221,13 @@ const VMContent = (props) => {
                 
                 </select>
             </span>
-            {vmState && <CPUContent name={vmState} />}
-            {vmState && <NetworkContent name={vmState} />}
-            {vmState && <DiskContent name={vmState} />}
-            {vmState && <DiskOperationContent name={vmState} />}
-            {vmState && <MemoryContent name={vmState} />}
+            <div id="chart-div">
+                {vmState && <CPUContent name={vmState} />}
+                {vmState && <NetworkContent name={vmState} />}
+                {vmState && <DiskContent name={vmState} />}
+                {vmState && <DiskOperationContent name={vmState} />}
+                {vmState && <MemoryContent name={vmState} />}
+            </div>
             </>
         );
     };
@@ -243,21 +254,21 @@ const CPUContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setCPUData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setCPUData(response));
         });
     }
     
     //CPU 데이터 가공 및 출력
     const CPUData = (props) => {
         const architectureSources = [
-            { value: 'average', name: 'Average' },
+            { value: 'average', name: 'Percentage CPU (Avg)' },
           ];
         const cpuDataAll = props.cpuData.value[0].timeseries[0].data;
 
         const result = cpuDataAll.map(function (item) {
             return {
                 "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
-                "average" : item.average
+                "average" : Number(item.average)
             };       
         })
 
@@ -265,7 +276,7 @@ const CPUContent = (props) => {
         <React.Fragment>
             <hr />
             <Chart
-                palette="Violet"
+                palette="Vintage"
                 dataSource={result}
             >
             <ChartTitle text="⚙ CPU (Avarage)" />
@@ -295,11 +306,6 @@ const CPUContent = (props) => {
         </React.Fragment>
         );
     };
-
-    useEffect(() => {
-        return () => setCPUData(false);
-      }, []);
-    
     return (
         <>
             {cpuData ? <CPUData cpuData={cpuData} />:RequestCPUData()}
@@ -319,7 +325,7 @@ const NetworkContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkIn).then(response => setnetInData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkIn).then(response => setnetInData(response));
         });
     }
     //네트워크 OUT 데이터 요청
@@ -328,15 +334,15 @@ const NetworkContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut).then(response => setnetOutData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut).then(response => setnetOutData(response));
         });
     }
     
     //네트워크 데이터 가공 및 출력
     const NetworkData = (props) => {
         const architectureSources = [
-            { value: 'networkIn', name: 'NetworkIn' },
-            { value: 'networkOut', name: 'NetworkOut' }
+            { value: 'networkIn', name: 'Network In Total (Sum)' },
+            { value: 'networkOut', name: 'Network Out Total (Sum)' }
           ];
         const networkInDataAll = props.netInData.value[0].timeseries[0].data;
         const networkOutDataAll = props.netOutData.value[0].timeseries[0].data;
@@ -344,7 +350,7 @@ const NetworkContent = (props) => {
         const result = networkInDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : item.timeStamp.slice(11, -4), 
+                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
                 "networkIn" : Number((item.total / 1000).toFixed(2)),
                 "networkOut" : Number((networkOutDataAll[index].total / 1000).toFixed(2))
             };
@@ -354,7 +360,7 @@ const NetworkContent = (props) => {
         <React.Fragment>
             <hr />
             <Chart
-                palette="Violet"
+                palette="Ocean"
                 dataSource={result}
             >
             <ChartTitle text="⚙ Network (Total)" />
@@ -385,14 +391,6 @@ const NetworkContent = (props) => {
         );
     };
 
-    useEffect(() => {
-        return () => setnetInData(false);
-      }, []);
-
-    useEffect(() => {
-        return () => setnetOutData(false);
-      }, []);
-
     return (
         <>
             {netInData ? 
@@ -416,7 +414,7 @@ const DiskContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskRead).then(response => setDiskReadData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskRead).then(response => setDiskReadData(response));
         });
     }
     //디스크 Write 데이터 요청
@@ -425,15 +423,15 @@ const DiskContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWrite).then(response => setDiskWriteData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWrite).then(response => setDiskWriteData(response));
         });
     }
     
     //디스크 데이터 가공 및 출력
     const DiskData = (props) => {
         const architectureSources = [
-            { value: 'diskRead', name: 'DiskRead' },
-            { value: 'diskWrite', name: 'DiskWrite' }
+            { value: 'diskRead', name: 'Disk Read Bytes (Sum)' },
+            { value: 'diskWrite', name: 'Disk Write Bytes (Sum)' }
           ];
         const diskReadDataAll = props.diskReadData.value[0].timeseries[0].data;
         const diskWriteDataAll = props.diskWriteData.value[0].timeseries[0].data;
@@ -442,7 +440,7 @@ const DiskContent = (props) => {
 
             return {
                 "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
-                "diskRead" : Number((item.total / 1000000).toFixed(2)),
+                "diskRead" : Number((item.total / 1000000).toFixed(2)),       
                 "diskWrite" : Number((diskWriteDataAll[index].total / 1000000).toFixed(2))
             };
         })
@@ -451,12 +449,12 @@ const DiskContent = (props) => {
         <React.Fragment>
             <hr />
             <Chart
-                palette="Violet"
+                palette="Office"  
                 dataSource={result}
             >
-            <ChartTitle text="⚙ Disk (Total)" />
+            <ChartTitle text="⚙ Disk bytes (Total)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
-            <CommonAxisSettings>
+            <CommonAxisSettings>  
                 <Grid visible={true} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
@@ -481,14 +479,6 @@ const DiskContent = (props) => {
         </React.Fragment>
         );
     };
-
-    useEffect(() => {
-        return () => setDiskReadData(false);
-      }, []);
-
-    useEffect(() => {
-        return () => setDiskWriteData(false);
-      }, []);
 
     return (
         <>
@@ -513,7 +503,7 @@ const DiskOperationContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskReadOperation).then(response => setDiskReadOperationData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskReadOperation).then(response => setDiskReadOperationData(response));
         });
     }
     //디스크 작업 Write 데이터 요청
@@ -522,15 +512,15 @@ const DiskOperationContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWriteOperation).then(response => setDiskWriteOperationData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWriteOperation).then(response => setDiskWriteOperationData(response));
         });
     }
     
     //디스크 작업 데이터 가공 및 출력
     const DiskOperationData = (props) => {
         const architectureSources = [
-            { value: 'diskReadOperation', name: 'DiskReadOperation' },
-            { value: 'diskWriteOperation', name: 'DiskWriteOperation' }
+            { value: 'diskReadOperation', name: 'Disk Read Operations/Sec (Avg)' },
+            { value: 'diskWriteOperation', name: 'Disk Write Operations/Sec (Avg)' }
           ];
         const diskReadOperationDataAll = props.diskReadOperationData.value[0].timeseries[0].data;
         const diskWriteOperationDataAll = props.diskWriteOperationData.value[0].timeseries[0].data;
@@ -548,10 +538,10 @@ const DiskOperationContent = (props) => {
         <React.Fragment>
             <hr />
             <Chart
-                palette="Violet"
+                palette="Carmine"
                 dataSource={result}
             >
-            <ChartTitle text="⚙ Disk Operation (Average)" />
+            <ChartTitle text="⚙ Disk Operations/sec (Average)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
                 <Grid visible={true} />
@@ -578,14 +568,6 @@ const DiskOperationContent = (props) => {
         </React.Fragment>
         );
     };
-
-    useEffect(() => {
-        return () => setDiskReadOperationData(false);
-      }, []);
-
-    useEffect(() => {
-        return () => setDiskWriteOperationData(false);
-      }, []);
 
     return (
         <>
@@ -609,27 +591,23 @@ const MemoryContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callVM(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointMemory).then(response => setMemoryData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointMemory).then(response => setMemoryData(response));
         });
     }
     
     //메모리 데이터 가공 및 출력
     const MemoryData = (props) => {
         const architectureSources = [
-            { value: 'average', name: 'Average' },
+            { value: 'average', name: 'Available Memory Bytes (Avg)' },
           ];
         const memoryDataAll = props.memoryData.value[0].timeseries[0].data;
 
         const result = memoryDataAll.map(function (item) {
-            if(item.average == 'NaN' || item.average == null) {
-                item.average = 0;
-            }
             return {
                 "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
                 "average" : Number((item.average / 1000000000).toFixed(2))
             };       
         })
-        console.log("aaaa", result);
 
         return (
         <React.Fragment>
@@ -638,7 +616,8 @@ const MemoryContent = (props) => {
                 palette="Violet"
                 dataSource={result}
             >
-            <ChartTitle text="⚙ Memory (Avarage)" />
+            <ValueAxis showZero={true} />
+            <ChartTitle text="⚙ Available Memory Bytes (Avarage)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
                 <Grid visible={true} />
@@ -666,10 +645,6 @@ const MemoryContent = (props) => {
         );
     };
 
-    useEffect(() => {
-        return () => setMemoryData(false);
-      }, []);
-    
     return (
         <>
             {memoryData ? <MemoryData memoryData={memoryData} />:RequestMemoryData()}

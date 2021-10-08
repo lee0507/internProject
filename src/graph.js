@@ -36,38 +36,6 @@ export async function callSubs(accessToken) {
         .catch(error => console.log(error));
 }
 
-export async function callRG(accessToken, endpoint) {
-    const headers = new Headers();
-    const bearer = `Bearer ${accessToken}`;
-
-    headers.append("Authorization", bearer);
-
-    const options = {
-        method: "GET",
-        headers: headers
-    };
-
-    return fetch(endpoint, options)
-        .then(response => response.json())
-        .catch(error => console.log(error));
-}
-
-export async function callVM(accessToken, endpoint) {
-    const headers = new Headers();
-    const bearer = `Bearer ${accessToken}`;
-
-    headers.append("Authorization", bearer);
-
-    const options = {
-        method: "GET",
-        headers: headers
-    };
-
-    return fetch(endpoint, options)
-        .then(response => response.json())
-        .catch(error => console.log(error));
-}
-
 export async function callMT(accessToken, endpoint) {
     const headers = new Headers();
     const bearer = `Bearer ${accessToken}`;

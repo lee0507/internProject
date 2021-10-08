@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500&display=swap');
+
 .App {
   text-align: center;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 .App-logo {
@@ -35,4 +38,25 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+#userInfo {
+  text-decoration: underline;
+}
+
+#welcome {
+  border: 3px solid;
+  width:fit-content;
+  padding: 1%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dx-visibility-change-handler{
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+#chart-div {
+  margin-left: 2%;
+  margin-right: 2%;
 }

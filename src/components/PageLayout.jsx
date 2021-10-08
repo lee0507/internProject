@@ -20,7 +20,7 @@ export const PageLayout = (props) => {
     return (
         <>
             <Navbar bg="primary" variant="dark">
-                <a className="navbar-brand" href="/">Microsoft Identity Platform</a>
+                <a className="navbar-brand" href="/">HARAGO</a>
                 { isAuthenticated ? <SignOutButton /> : <SignInButton /> }
             </Navbar>
             <br />
