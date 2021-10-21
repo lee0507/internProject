@@ -1,9 +1,10 @@
 import { graphConfig, subsConfig } from "./authConfig";
 
 /**
- * Attaches a given access token to a MS Graph API call. Returns information about the user
  * @param accessToken 
  */
+
+// 로그인 정보 받아오기
 export async function callMsGraph(accessToken) {
     const headers = new Headers();
     const bearer = `Bearer ${accessToken}`;
@@ -20,6 +21,7 @@ export async function callMsGraph(accessToken) {
         .catch(error => console.log(error));
 }
 
+// 구독 정보 받아오기
 export async function callSubs(accessToken) {
     const headers = new Headers();
     const bearer = `Bearer ${accessToken}`;
@@ -36,6 +38,7 @@ export async function callSubs(accessToken) {
         .catch(error => console.log(error));
 }
 
+// 나머지 정보 받아오기(같은 함수로 재사용)
 export async function callMT(accessToken, endpoint) {
     const headers = new Headers();
     const bearer = `Bearer ${accessToken}`;

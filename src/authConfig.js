@@ -45,12 +45,7 @@ export const msalConfig = {
     }
 };
 
-/**
- * Scopes you add here will be prompted for user consent during sign-in.
- * By default, MSAL.js will add OIDC scopes (openid, profile, email) to any login request.
- * For more information about OIDC scopes, visit: 
- * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
- */
+//로그인 scopes 및 엔드포인트
 export const loginRequest = {
     scopes: ["User.Read"]
 };
@@ -58,23 +53,31 @@ export const graphConfig = {
     graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
 };
 
+//전체 데이터 공용 scopes
 export const dataRequest = {
     scopes: ["https://management.azure.com/user_impersonation"]
 };
+
+//구독 엔드포인트
 export const subsConfig = {
     subsEndpoint: "https://management.azure.com/subscriptions?api-version=2020-01-01"
 };
+
+//리소스그룹 엔드포인트
 export const rgConfig = {
     rgEndpoint: "https://management.azure.com/subscriptions/bbdeb974-4734-49c2-81d1-68c39d85cbf1/resourcegroups?api-version=2021-04-01",
     rgEndpoint1: "https://management.azure.com/subscriptions/",
     rgEndpoint2: "/resourcegroups?api-version=2021-04-01"
 };
+
+// 가상머신 엔드포인트
 export const vmConfig = {
     vmEndpoint: "https://management.azure.com/subscriptions/bbdeb974-4734-49c2-81d1-68c39d85cbf1/resourceGroups/rgLee/providers/Microsoft.Compute/virtualMachines?api-version=2021-03-01",
     vmEndpoint1: "https://management.azure.com",
     vmEndpoint2: "/providers/Microsoft.Compute/virtualMachines?api-version=2021-03-01"
 };
-//&timespan=2021-09-30T07:08/2021-09-30T08:08
+
+//그래프 엔드포인트
 export const mtConfig = {
     mtEndpoint: "https://management.azure.com/{resourceUri}/providers/Microsoft.Insights/metrics?api-version=2018-01-01",
     mtEndpoint1: "https://management.azure.com",

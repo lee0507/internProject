@@ -21,6 +21,7 @@ import {
   } from "devextreme-react/chart";
 
 import "./styles/App.css";
+import moment from "moment";
 
 
 //프로필 데이터 불러오기
@@ -64,8 +65,8 @@ const ProfileContent = () => {
             <h1>🎉Welcome {이름} {직급}</h1><p />
                 <div id="welcome">
                     <span id="icon" onClick={handle}>📍 </span><span id="userInfo" >User Information</span>
-                    <div>Email : {메일}</div>
-                    <div>mobilePhone : {핸드폰}</div>
+                    <div>Email : <b>{메일}</b></div>
+                    <div>mobilePhone : <b>{핸드폰}</b></div>
                 </div>
             </div>
             </>
@@ -191,6 +192,8 @@ const VMContent = (props) => {
     const { instance, accounts } = useMsal();
     const [vmData, setVMData] = useState(null);
     let [vmState, setvmState] = useState("");
+    let [timeState, setTimeState] = useState("");
+    let [btnState, setBtnState] = useState("btn1");
 
     function RequestVMData() {
         instance.acquireTokenSilent({
@@ -218,15 +221,22 @@ const VMContent = (props) => {
                 } }>
                 <option value="" disabled>Select Option</option>
                     {tableRowsss}
-                
                 </select>
             </span>
+            <div id="timespan-div">
+                <button className="timespan-button" style={btnState === "btn1" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=PT1H"), setBtnState("btn1")}}>1 hour</button>
+                <button className="timespan-button" style={btnState === "btn2" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=PT6H&interval=PT5M"), setBtnState("btn2")}}>6 hour</button>
+                <button className="timespan-button" style={btnState === "btn3" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=PT12H&interval=PT5M"), setBtnState("btn3")}}>12 hour</button>
+                <button className="timespan-button" style={btnState === "btn4" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=P1D&interval=PT30M"), setBtnState("btn4")}}>1 day</button>
+                <button className="timespan-button" style={btnState === "btn5" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=P7D&interval=PT6H"), setBtnState("btn5")}}>7 day</button>
+                <button className="timespan-button" style={btnState === "btn6" ? {background: "skyblue"} : {}} onClick={() => {setTimeState("&timespan=P30D&interval=P1D"), setBtnState("btn6")}}>30 day</button>
+            </div>
             <div id="chart-div">
-                {vmState && <CPUContent name={vmState} />}
-                {vmState && <NetworkContent name={vmState} />}
-                {vmState && <DiskContent name={vmState} />}
-                {vmState && <DiskOperationContent name={vmState} />}
-                {vmState && <MemoryContent name={vmState} />}
+                {vmState && <CPUContent name={vmState} time={timeState}/>}
+                {vmState && <NetworkContent name={vmState} time={timeState}/>}
+                {vmState && <DiskContent name={vmState} time={timeState}/>}
+                {vmState && <DiskOperationContent name={vmState} time={timeState}/>}
+                {vmState && <MemoryContent name={vmState} time={timeState}/>}
             </div>
             </>
         );
@@ -254,7 +264,7 @@ const CPUContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU).then(response => setCPUData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointCPU + props.time).then(response => setCPUData(response));
         });
     }
     
@@ -267,8 +277,8 @@ const CPUContent = (props) => {
 
         const result = cpuDataAll.map(function (item) {
             return {
-                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
-                "average" : Number(item.average)
+                "timeStamp" : moment(item.timeStamp).format("DD일 HH:mm"), 
+                "average" : Number(Number(item.average).toFixed(4))
             };       
         })
 
@@ -282,7 +292,7 @@ const CPUContent = (props) => {
             <ChartTitle text="⚙ CPU (Avarage)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
-                <Grid visible={true} />
+                <Grid visible={false} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
                 return (
@@ -300,7 +310,7 @@ const CPUContent = (props) => {
                 </Label>
             </ArgumentAxis>
             <Legend verticalAlignment="top" horizontalAlignment="right" />
-            <Export enabled={true} fileName="lee" />
+            <Export enabled={true} fileName="CPU" />
             <Tooltip enabled={true} />
             </Chart>
         </React.Fragment>
@@ -325,7 +335,7 @@ const NetworkContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkIn).then(response => setnetInData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkIn + props.time).then(response => setnetInData(response));
         });
     }
     //네트워크 OUT 데이터 요청
@@ -334,7 +344,7 @@ const NetworkContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut).then(response => setnetOutData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointNetworkOut + props.time).then(response => setnetOutData(response));
         });
     }
     
@@ -350,7 +360,7 @@ const NetworkContent = (props) => {
         const result = networkInDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "timeStamp" : moment(item.timeStamp).format("DD일 HH:mm"), 
                 "networkIn" : Number((item.total / 1000).toFixed(2)),
                 "networkOut" : Number((networkOutDataAll[index].total / 1000).toFixed(2))
             };
@@ -366,7 +376,7 @@ const NetworkContent = (props) => {
             <ChartTitle text="⚙ Network (Total)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
-                <Grid visible={true} />
+                <Grid visible={false} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
                 return (
@@ -384,7 +394,7 @@ const NetworkContent = (props) => {
                 </Label>
             </ArgumentAxis>
             <Legend verticalAlignment="top" horizontalAlignment="right" />
-            <Export enabled={true} fileName="lee" />
+            <Export enabled={true} fileName="Network" />
             <Tooltip enabled={true} />
             </Chart>
         </React.Fragment>
@@ -414,7 +424,7 @@ const DiskContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskRead).then(response => setDiskReadData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskRead + props.time).then(response => setDiskReadData(response));
         });
     }
     //디스크 Write 데이터 요청
@@ -423,7 +433,7 @@ const DiskContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWrite).then(response => setDiskWriteData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWrite + props.time).then(response => setDiskWriteData(response));
         });
     }
     
@@ -439,7 +449,7 @@ const DiskContent = (props) => {
         const result = diskReadDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "timeStamp" : moment(item.timeStamp).format("DD일 HH:mm"), 
                 "diskRead" : Number((item.total / 1000000).toFixed(2)),       
                 "diskWrite" : Number((diskWriteDataAll[index].total / 1000000).toFixed(2))
             };
@@ -455,7 +465,7 @@ const DiskContent = (props) => {
             <ChartTitle text="⚙ Disk bytes (Total)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>  
-                <Grid visible={true} />
+                <Grid visible={false} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
                 return (
@@ -473,7 +483,7 @@ const DiskContent = (props) => {
                 </Label>
             </ArgumentAxis>
             <Legend verticalAlignment="top" horizontalAlignment="right" />
-            <Export enabled={true} fileName="lee" />
+            <Export enabled={true} fileName="Disk_bytes" />
             <Tooltip enabled={true} />
             </Chart>
         </React.Fragment>
@@ -503,7 +513,7 @@ const DiskOperationContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskReadOperation).then(response => setDiskReadOperationData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskReadOperation + props.time).then(response => setDiskReadOperationData(response));
         });
     }
     //디스크 작업 Write 데이터 요청
@@ -512,7 +522,7 @@ const DiskOperationContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWriteOperation).then(response => setDiskWriteOperationData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointDiskWriteOperation + props.time).then(response => setDiskWriteOperationData(response));
         });
     }
     
@@ -528,7 +538,7 @@ const DiskOperationContent = (props) => {
         const result = diskReadOperationDataAll.map((item, index) =>{
 
             return {
-                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "timeStamp" : moment(item.timeStamp).format("DD일 HH:mm"), 
                 "diskReadOperation" : Number(Number(item.average).toFixed(2)),
                 "diskWriteOperation" : Number(Number(diskWriteOperationDataAll[index].average).toFixed(2))
             };
@@ -544,7 +554,7 @@ const DiskOperationContent = (props) => {
             <ChartTitle text="⚙ Disk Operations/sec (Average)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
-                <Grid visible={true} />
+                <Grid visible={false} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
                 return (
@@ -562,7 +572,7 @@ const DiskOperationContent = (props) => {
                 </Label>
             </ArgumentAxis>
             <Legend verticalAlignment="top" horizontalAlignment="right" />
-            <Export enabled={true} fileName="lee" />
+            <Export enabled={true} fileName="Disk_Operations/sec" />
             <Tooltip enabled={true} />
             </Chart>
         </React.Fragment>
@@ -591,7 +601,7 @@ const MemoryContent = (props) => {
             ...dataRequest,
             account: accounts[0]
         }).then((response) => {
-            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointMemory).then(response => setMemoryData(response));
+            callMT(response.accessToken, mtConfig.mtEndpoint1 + props.name + mtConfig.mtEndpointMemory + props.time).then(response => setMemoryData(response));
         });
     }
     
@@ -604,7 +614,7 @@ const MemoryContent = (props) => {
 
         const result = memoryDataAll.map(function (item) {
             return {
-                "timeStamp" : (Number(item.timeStamp.slice(11, -7)) + 9) + item.timeStamp.slice(13, -4), 
+                "timeStamp" : moment(item.timeStamp).format("DD일 HH:mm"), 
                 "average" : Number((item.average / 1000000000).toFixed(2))
             };       
         })
@@ -620,7 +630,7 @@ const MemoryContent = (props) => {
             <ChartTitle text="⚙ Available Memory Bytes (Avarage)" />
             <CommonSeriesSettings argumentField="timeStamp" type="spline" />
             <CommonAxisSettings>
-                <Grid visible={true} />
+                <Grid visible={false} />
             </CommonAxisSettings>
             {architectureSources.map(function (item) {
                 return (
@@ -638,7 +648,7 @@ const MemoryContent = (props) => {
                 </Label>
             </ArgumentAxis>
             <Legend verticalAlignment="top" horizontalAlignment="right" />
-            <Export enabled={true} fileName="lee" />
+            <Export enabled={true} fileName="Available_Memory_Bytes" />
             <Tooltip enabled={true} />
             </Chart>
         </React.Fragment>
